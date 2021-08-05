@@ -4,7 +4,7 @@ by: asofyan@gmail.com
 
 Python app to manage your trades by using Nefertiti Bot from command line. Nefertiti is cool cryptocurrency trading bot made by @svanas, see here: https://nefertiti-tradebot.com/ for more information. Basically the bot will find the best support available, put a limit buy on it and wait. After limit buy take place, the sell bot will automatically set sell with specific target profit. The default is 5%. This is default setting for everything. You can adjust the bot to match your criteria.
 
-Nefertiti, at it finest, only provides command line, lack of management tool. This software is trying to provides the management with the main feature:
+Nefertiti, for simplicity, only provides command line, lack of management tool. This software is trying to provides the management with the main feature:
 1. Start, stop, and restart your NEF bot.
 2. See the status of your bot
 3. Logviewer (todos)
@@ -23,6 +23,7 @@ As it first published to match my need, this tool equipped with automatically co
 3. Record the transaction and summary
 
 ## Maintenance
+This is my trading system, set in cron job. If you don't like it, don't run it. Use your own system.
 1. Every x days (default to 3 days), check if there's enough transactions
 2. If not, shutdown the bot. Close all buy limits. Market sell any sell limit
 3. Regularly calculate the pl summary based on transaction data (x days)
@@ -35,5 +36,13 @@ As it first published to match my need, this tool equipped with automatically co
 3. Setup your virtualenv python3
 4. pip install all items in requirements.txt
 5. Run setup.py. It will create tables, and populate trending coins from Livecoin, and all markets in
+
+## Requirements
+All requirements is already noted in requirements.txt. Use pip to install them all.
+1. Python3
+2. PeeWee ORM
+3. Sqlite - default. You can change it
+
+Tested on Mac and Linux Ubuntu
 
 Happy cuan bro
