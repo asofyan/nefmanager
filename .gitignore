@@ -92,5 +92,6 @@ VENV
 ### Editor setting ###
 .vscode
 
-config.cfg
-nefmanager.db
+/config.cfg
+/nefmanager.db
+/cryptotrader
