@@ -1,0 +1,51 @@
+# config.cfg.txt
+# copy this to config.cfg and filled in the necessary
+[nefmanager]
+CMC_API_KEY = None
+# use this if you want to pick trending coins: https://www.livecoinwatch.com/tools/api
+LC_API_KEY = None
+# if you want to setup different database, check models.py and add additional extension for mysql or postgresql
+SQLITE = nefmanager.db
+
+[bot]
+iteration = 3 # interation in days 
+threshold = 10 # at least 10 transaction during interation
+max_bot_per_pair = 5
+telegram_key = None
+telegram_id = None
+pushover_app_key = None
+pushover_user_key = None
+strategy = 0
+notify = 2
+#default your take profit percentage 1.03 = 3%
+mult = 1.03
+repeat = 1
+
+
+[binance]
+quotes = ['USDT','BUSD','BTC','ETH','BNB']
+api_key = YOUR_API_KEY
+api_secret = YOUR_API_SECRET
+api_passphrase = None
+pushover_app_key = NONE
+pushover_user_key = NONE
+# number of bot instances
+bot_instances = {'USDT':5, 'BTC': 5, 'ETH':5, 'BUSD': 5, 'BNB':5}
+# amount per transaction, bare minimum
+prices = {"BTC":"0.0005","ETH":"0.006","BUSD":"25","USDT":"25","BNB":"0.05"}
+
+[hitbtc]
+quotes = ['USD','BTC','ETH']
+api_key = YOUR_API_KEY
+api_secret = YOUR_API_SECRET
+api_passphrase = None
+bot_instances = {'USD':2, 'BTC': 2, 'ETH':2}
+prices = { "BTC":"0.00034","ETH":"0.005","USD":"15" }
+
+[kucoin]
+quotes = ['USDT','BTC','ETH']
+api_key = None
+api_secret = None
+api_passphrase = None
+bot_instances = {'USDT':3, 'BTC': 3, 'ETH':3}
+prices = { "BTC":"0.00034","ETH":"0.005","USDT":"15" }
