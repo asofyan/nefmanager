@@ -61,4 +61,8 @@ if __name__ == '__main__':
     for ce in coin_excluded:
         fiat = Trending.delete().where(Trending.code.contains(ce))
         fiat.execute()
+
+    # delete 5 coins that inactive, order by created
+    inactive = Trending.delete().where(Trending.active == False).order_by(Trending.created).limit(5)
+    inactive.execute()
         

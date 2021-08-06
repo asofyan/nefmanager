@@ -13,6 +13,7 @@ nefcon = config['nefmanager']
 
 class nefMan:
     exchange = 'BINANCE'
+    market = None
     botconf = {} # pass the config.cfg values
     instances = {'USDT':3, 'BTC': 3, 'ETH':3, 'BUSD': 3, 'BNB':3}
     quotes = ['USDT','BUSD','BTC','ETH','BNB']
@@ -49,11 +50,11 @@ class nefMan:
         
 
     def start(self):
-        print('run new nefbot')
+        print('run buy nefbot')
         #print(self.params)
         # update the trending coin first
         cdir = os.getcwd()
-        if not self.sandbox:
+        if not self.sandbox and not self.market:
             lcmarket = os.path.join(cdir,'lcmarket.py')
             p = subprocess.Popen([lcmarket],shell=True)
             # allow market to be updated
@@ -68,6 +69,39 @@ class nefMan:
         buyparam.insert(1,'buy')
         buyparam.append('--repeat=%s'%self.botconf['bot']['repeat'])
         prices = eval(self.botconf[self.exchange.lower()]['prices'])
+        
+        # market defined, executed only single NEF buy
+        if self.market:
+            mark = Markets.get(Markets.exchange == ex, Markets.name == self.market)
+            if mark:
+                if self.market[-4:] in ['USDT','BUSD']:
+                    buyparam.append('--price=%s'%prices[self.market[-4:]])
+                else:
+                    price_str = '--price=%s'%prices[self.market[-3:]]
+                    buyparam.append(price_str)
+                buyparam.append('--market=%s'%self.market)
+                logfile = os.path.join(cdir, 'logs', self.market)
+                try:
+                    traded = TradedPairs.get(
+                        TradedPairs.exchange == ex, 
+                        TradedPairs.pairs == self.market, 
+                        TradedPairs.active == True)
+                    print("active trading is still going for %s"%self.market)
+                except:
+                    if self.sandbox:
+                        print(" ".join(buyparam),' > ', logfile, '2>&1')
+                    else:
+                        p = subprocess.Popen(['%s > %s 2>&1'%(" ".join(buyparam),logfile)], shell=True)
+                        traded = TradedPairs()
+                        traded.exchange = ex
+                        traded.pairs = self.market
+                        traded.active = True
+                        traded.pid = p.pid
+                        traded.save()
+            else:
+                print("Market %s not found in %s"%(self.market, ex.name))
+            sys.exit()
+            # stop here for specific market
         # for every pairs, we check through available market
         mtanks = '' # avoid double by checking in this array
         for qt in self.quotes:
@@ -117,7 +151,7 @@ class nefMan:
 
 
 
-    def stop(self, pair=None):
+    def stop(self):
         print('stop nef bot')
         try:
             ex = Exchange.get(Exchange.name == self.exchange)
@@ -127,27 +161,41 @@ class nefMan:
         if ex:
             print("stopping instance")
             # no pair provided, delete all
-            if not pair:
+            if not self.market:
                 print("no pair.. get all active %s"%(ex.name))
                 traded = TradedPairs.select().where(TradedPairs.exchange == ex, TradedPairs.active == True)
                 for t in traded:
                     print(t.pid)
-                    try:
-                        os.kill(t.pid+1, signal.SIGTERM)
-                        t.end_date = datetime.datetime.now()
-                        t.active = False
-                        t.save()
-                    except Exception as e:
-                        print("Failed to kill %s %s %s"%(t.pid, t.pairs, e))
+                    if self.sandbox:
+                        print("rm -rf %s"%(os.path.join(os.getcwd(),'logs',t.pairs)))
+                    else:
+                        try:
+                            os.kill(t.pid+1, signal.SIGTERM)
+                            t.end_date = datetime.datetime.now()
+                            t.active = False
+                            t.save()
+                            try:
+                                os.remove(os.path.join(os.getcwd(),'logs',t.pairs))
+                            except:
+                                print("Error delete log file logs/%s"%t.pairs)
+                        except Exception as e:
+                            print("Failed to kill %s %s %s"%(t.pid, t.pairs, e))
             else:
-                try:
-                    traded = TradedPairs.get(TradedPairs.exchange == ex, TradedPairs.pair == pair)
-                    os.kill(traded.pid+1, signal.SIGTERM)
-                    traded.end_date = datetime.datetime.now()
-                    traded.active = False
-                    traded.save()
-                except Exception as e:
-                    print("Failed to kill %s: %s"%(pair, e))
+                if self.sandbox:
+                    print("rm -rf %s"%(os.path.join(os.getcwd(),'logs',self.market)))
+                else:
+                    try:
+                        traded = TradedPairs.get(TradedPairs.exchange == ex, TradedPairs.pair == self.market)
+                        os.kill(traded.pid+1, signal.SIGTERM)
+                        traded.end_date = datetime.datetime.now()
+                        traded.active = False
+                        traded.save()
+                        try:
+                            os.remove(os.path.join(os.getcwd(),'logs',self.market))
+                        except:
+                            print("Error delete log file logs/%s"%self.market)
+                    except Exception as e:
+                        print("Failed to kill %s: %s"%(pair, e))
 
         
     def startsell(self):
@@ -194,6 +242,7 @@ class nefMan:
 pars = OptionParser()
 pars.add_option('-e', '--exchange')
 pars.add_option('-a','--action')
+pars.add_option('-m','--market')
 option, remain = pars.parse_args(sys.argv[1:])
 
 if __name__ == '__main__':
@@ -215,6 +264,8 @@ if __name__ == '__main__':
     nef = nefMan(exchange)
     nef.sandbox = True # debugging only
     nef.set_instances(config)
+    if option.market:
+        nef.market = option.market
     if startnef:
         nef.start()
     if stopnef:
