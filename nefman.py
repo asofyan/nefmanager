@@ -98,6 +98,7 @@ class nefMan:
                         traded.active = True
                         traded.pid = p.pid
                         traded.save()
+                        print("successfully start %s NEF bot at %s"%(self.market, ex.name))
             else:
                 print("Market %s not found in %s"%(self.market, ex.name))
             sys.exit()
@@ -165,6 +166,10 @@ class nefMan:
                 print("no pair.. get all active %s"%(ex.name))
                 traded = TradedPairs.select().where(TradedPairs.exchange == ex, TradedPairs.active == True)
                 for t in traded:
+                    stopparams = self.params[:]
+                    stopparams.insert(1,'cancel')
+                    stopparams.append('--market=%s'%t.pairs)
+                    stopparams.append('--side=buy')
                     print(t.pid)
                     if self.sandbox:
                         print("rm -rf %s"%(os.path.join(os.getcwd(),'logs',t.pairs)))
@@ -174,6 +179,8 @@ class nefMan:
                             t.end_date = datetime.datetime.now()
                             t.active = False
                             t.save()
+                            # cancel all buys order
+                            p = subprocess.Popen([" ".join(stopparams)],shell=True)
                             try:
                                 os.remove(os.path.join(os.getcwd(),'logs',t.pairs))
                             except:
@@ -185,17 +192,25 @@ class nefMan:
                     print("rm -rf %s"%(os.path.join(os.getcwd(),'logs',self.market)))
                 else:
                     try:
-                        traded = TradedPairs.get(TradedPairs.exchange == ex, TradedPairs.pair == self.market)
+                        traded = TradedPairs.get(TradedPairs.exchange == ex, 
+                                TradedPairs.pairs == self.market, 
+                                TradedPairs.active == True)
                         os.kill(traded.pid+1, signal.SIGTERM)
                         traded.end_date = datetime.datetime.now()
                         traded.active = False
                         traded.save()
+                        stopparams = self.params
+                        stopparams.insert(1,'cancel')
+                        stopparams.append('--market=%s'%self.market)
+                        stopparams.append('--side=buy')
+                        print(" ".join(stopparams))
+                        subprocess.Popen([" ".join(stopparams)], shell=True)
                         try:
                             os.remove(os.path.join(os.getcwd(),'logs',self.market))
                         except:
                             print("Error delete log file logs/%s"%self.market)
                     except Exception as e:
-                        print("Failed to kill %s: %s"%(pair, e))
+                        print("Failed to kill %s: %s"%(self.market, e))
 
         
     def startsell(self):
@@ -262,7 +277,7 @@ if __name__ == '__main__':
         if action == 'sell':
             startsell = True
     nef = nefMan(exchange)
-    nef.sandbox = True # debugging only
+    nef.sandbox = False # debugging only
     nef.set_instances(config)
     if option.market:
         nef.market = option.market
