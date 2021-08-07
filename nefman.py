@@ -55,10 +55,12 @@ class nefMan:
         # update the trending coin first
         cdir = os.getcwd()
         if not self.sandbox and not self.market:
-            lcmarket = os.path.join(cdir,'lcmarket.py')
-            p = subprocess.Popen([lcmarket],shell=True)
+            pass
+            # we do this and check aggregation on separate process
+            #lcmarket = os.path.join(cdir,'lcmarket.py')
+            #p = subprocess.Popen([lcmarket],shell=True)
             # allow market to be updated
-            time.sleep(10)
+            #time.sleep(10)
         
         # we got lists of random trending pairs
         try:

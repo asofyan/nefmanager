@@ -29,6 +29,8 @@ class Exchange(Model):
 class Markets(Model):
     exchange = ForeignKeyField(Exchange)
     name = CharField()
+    agg = DecimalField()
+    updated = DateTimeField(default=datetime.datetime.now)
 
     class Meta:
         database =  db
@@ -53,5 +55,4 @@ class Transaction(Model):
 
     class Meta:
         database =  db
-
 

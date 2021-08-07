@@ -8,14 +8,16 @@ from models import *
 # creating tables
 print("migrating tables ..")
 db.connect()
-db.drop_tables([Markets])
-db.create_tables([Markets])
-#migrator = SqliteMigrator(db)
+#db.drop_tables([Markets])
+#db.create_tables([Markets])
+migrator = SqliteMigrator(db)
 
 # add pid in traded pairs
-#pid = IntegerField(default=0)
-#migrate(
-    #migrator.add_column('tradedpairs','pid',pid)
-#)
+agg = DecimalField(default=0.0)
+updated = DateTimeField(default=datetime.datetime.now)
+migrate(
+    #migrator.add_column('markets','agg',agg)
+    migrator.add_column('markets','updated',updated)
+)
 
 
