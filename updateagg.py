@@ -31,13 +31,18 @@ def update_agg(exchange, market = None):
                 update.updated = datetime.datetime.now()
                 update.save()
     else:
-        marks = Markets.select().where(Markets.agg == 0.0).order_by(Markets.updated).limit(10)
+        marks = Markets.select().order_by(Markets.updated).limit(10)
         for m in marks:
-            p = subprocess.check_output([command,'agg','--market=%s'%m.name,'--exchange=%s'%exchange])
-            if eval(p)>0:
-                print(m.name, eval(p))
-                m = Markets.update(agg = eval(p)).where(Markets.name == m.name, Markets.exchange == ex)
-                m.execute()
+            try:
+                p = subprocess.check_output([command,'agg','--market=%s'%m.name,'--exchange=%s'%exchange])
+                if eval(p)>0:
+                    print(m.name, eval(p))
+                    m = Markets.update(agg = eval(p),updated=datetime.datetime.now()).where(Markets.name == m.name, Markets.exchange == ex)
+                    m.execute()
+            except:
+                mu = Markets.update(updated=datetime.datetime.now()).where(Markets.name == m.name, Markets.exchange == ex)
+                mu.execute()
+                print("Failed to get aggregate %s, update only "%m.name)
 
 
 

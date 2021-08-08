@@ -95,3 +95,5 @@ VENV
 /config.cfg
 /nefmanager.db
 /cryptotrader
+/logs
+/sell

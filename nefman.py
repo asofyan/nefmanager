@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import configparser, datetime
-import subprocess, os, sys, time, signal
+import subprocess, os, sys, time, signal, json
+from decimal import Decimal
 from optparse import OptionParser
 
 import peewee
@@ -82,7 +83,7 @@ class nefMan:
                     price_str = '--price=%s'%prices[self.market[-3:]]
                     buyparam.append(price_str)
                 buyparam.append('--market=%s'%self.market)
-                logfile = os.path.join(cdir, 'logs', self.market)
+                logfile = os.path.join(cdir, 'logs', ex.name.lower(), self.market)
                 try:
                     traded = TradedPairs.get(
                         TradedPairs.exchange == ex, 
@@ -134,7 +135,7 @@ class nefMan:
                                 break
                             except:
                                 print("NEF bot %s %s"%(mk.name,tr.code))
-                                logfile = os.path.join(cdir, 'logs', mk.name)
+                                logfile = os.path.join(cdir, 'logs', ex.name.lower(), mk.name)
                                 cparam.append('--market=%s'%mk.name)
                                 if self.sandbox:
                                     #pass
@@ -151,7 +152,7 @@ class nefMan:
                                 break
                         #cparam.clear()
             #qparam.clear()
-
+        sys.exit()
 
 
     def stop(self):
@@ -174,7 +175,7 @@ class nefMan:
                     stopparams.append('--side=buy')
                     print(t.pid)
                     if self.sandbox:
-                        print("rm -rf %s"%(os.path.join(os.getcwd(),'logs',t.pairs)))
+                        print("rm -rf %s"%(os.path.join(os.getcwd(),'logs',ex.name.lower(),t.pairs)))
                     else:
                         try:
                             os.kill(t.pid+1, signal.SIGTERM)
@@ -184,14 +185,14 @@ class nefMan:
                             # cancel all buys order
                             p = subprocess.Popen([" ".join(stopparams)],shell=True)
                             try:
-                                os.remove(os.path.join(os.getcwd(),'logs',t.pairs))
+                                os.remove(os.path.join(os.getcwd(),'logs',ex.name.lower(),t.pairs))
                             except:
-                                print("Error delete log file logs/%s"%t.pairs)
+                                print("Error delete log file logs/%s/%s"%(ex.name.lower(),t.pairs))
                         except Exception as e:
                             print("Failed to kill %s %s %s"%(t.pid, t.pairs, e))
             else:
                 if self.sandbox:
-                    print("rm -rf %s"%(os.path.join(os.getcwd(),'logs',self.market)))
+                    print("rm -rf %s"%(os.path.join(os.getcwd(),'logs',ex.name.lower(), self.market)))
                 else:
                     try:
                         traded = TradedPairs.get(TradedPairs.exchange == ex, 
@@ -208,11 +209,12 @@ class nefMan:
                         print(" ".join(stopparams))
                         subprocess.Popen([" ".join(stopparams)], shell=True)
                         try:
-                            os.remove(os.path.join(os.getcwd(),'logs',self.market))
+                            os.remove(os.path.join(os.getcwd(),'logs',ex.name.lower(),self.market))
                         except:
-                            print("Error delete log file logs/%s"%self.market)
+                            print("Error delete log file logs/%s/%s"%(ex.name.lower(),self.market))
                     except Exception as e:
                         print("Failed to kill %s: %s"%(self.market, e))
+        sys.exit()
 
         
     def startsell(self):
@@ -230,10 +232,11 @@ class nefMan:
             print(" ".join(sellparam),'>',logfile,'2>&1')
         else:
             p = subprocess.Popen(['%s > %s 2>&1'%(" ".join(sellparam),logfile)], shell=True)
-            f = open(os.path.join(curdir,'sell','sell.pid'),'w')
+            f = open(os.path.join(curdir,'sell','sell-%s.pid'%self.exchange.lower()),'w')
             # save pid for future close or restart
             f.write(str(p.pid))
             f.close()
+        sys.exit()
 
 
     def __check_nef(self):
@@ -249,7 +252,38 @@ class nefMan:
         print('list existing nef bot and pids')
 
     def summary(self):
+        cdir = os.getcwd()
+        filepath = os.path.join(cdir,'sell','sell-%s.log'%self.exchange.lower())
         print('summary PnL of existing bot')
+        summary = {}
+        with open(filepath,'r') as logs:
+            for log in logs:
+                lines = log.split() 
+                if 'FILLED' in lines[2]:
+                    data = json.loads(lines[3])
+                    #data["%s_%s"%(data['side'],data['symbol'])] += amount
+                    amount = Decimal(data['price'])*Decimal(data['executedQty']) 
+                    if data['symbol'] not in summary:
+                        summary[data['symbol']] = 0
+                    if data['side'] == 'BUY':
+                        summary[data['symbol']] = summary[data['symbol']] - amount
+                    if data['side'] == 'SELL':
+                        summary[data['symbol']] = summary[data['symbol']] + amount
+                    
+                    print(lines[0],data['symbol'],data['side'],data['price'],data['executedQty'],amount)
+                    #print(data['symbol'])
+                    #print(data['side'])
+                    #print(data['price'])
+                    #print(data['executedQty'])
+        logs.close()
+        print(summary)
+        
+        #for l in eval(logs):
+        #    print(l)
+        sys.exit()
+
+    def help(self):
+        print("require action. See Readme.MD")
 
     # check existing bots
     # check the number
@@ -263,29 +297,23 @@ pars.add_option('-m','--market')
 option, remain = pars.parse_args(sys.argv[1:])
 
 if __name__ == '__main__':
-    startnef = False
-    stopnef = False
-    startsell = False
     if option.exchange:
         exchange = option.exchange
     else:
         exchange = 'BINANCE'
-    if option.action:
-        action = option.action
-        if action == 'buy':
-            startnef = True
-        if action == 'stop':
-            stopnef = True
-        if action == 'sell':
-            startsell = True
     nef = nefMan(exchange)
     nef.sandbox = False # debugging only
     nef.set_instances(config)
     if option.market:
         nef.market = option.market
-    if startnef:
-        nef.start()
-    if stopnef:
-        nef.stop()
-    if startsell:
-        nef.startsell()
+    if option.action:
+        action = option.action
+        if action == 'buy':
+            nef.start()
+        if action == 'stop':
+            nef.stop()
+        if action == 'sell':
+            nef.startsell()
+        if action == 'summary':
+            nef.summary()
+    nef.help()
