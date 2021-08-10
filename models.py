@@ -49,9 +49,12 @@ class TradedPairs(Model):
 
 class Transaction(Model):
     pair = ForeignKeyField(TradedPairs)
+    trxid = CharField(null=True)
     date = DateTimeField(default = datetime.datetime.now)
     sell = BooleanField(default=True) # true = sell, false = buy
     amount = DecimalField()
+    price = DecimalField(default=0.0)
+    qty = DecimalField(default=0.0)
 
     class Meta:
         database =  db
