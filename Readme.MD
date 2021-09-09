@@ -12,30 +12,35 @@ Nefertiti, for simplicity, only provides command line, lack of management tool. 
 
 As it first published to match my need, this tool equipped with automatically coin picking from Trending coins.
 
-## Preparation
-1. Fill in the exchange data (example: Binance)
-2. Get the pairs for active exchange to be used (eg. get list of active market on Binance)
-3. Regularly update the list of any coins that match your criteria (from livecoin or coinmarketcap)
+## Installation
+1. Copy config.cfg.txt to config.cfg
+2. Edit your configuration. To add new exchange, add section in your config. You may copy from [binance] section
+3. Please make sure you edit `prices`
+4. Create virtual environment for nefman (*optional*) `virtualenv .envnefman`
+5. Enter your virtual environment `source .envnefman/bin/activate`
+6. Install requirements with pip `pip install -f requirements.txt`
+7. Run setup.py `python setup.py`
+8. Get the pairs for active exchange to be used (eg. get list of active market on Binance)-> `python exchangemarket.py -e BINANCE`   
+   This step used to make sure the pair exists in your exchange (even nef also checked that), and for checking if you want to run random pairs for trending coins.
+9. This optional steps, is getting trending coin from livecoinwatch.com, from rank 51-100. I assume in that rank, the coins is trending, but have no momentum yet, with enough volume (avoid shitcoins). Before run this step, make sure you register API for free in livecoinwatch. You may edit the source code to match your rank. Do this to get trending coins -> `python lcmarket.py`
+
+We are ready to trade with Nef.
 
 ## Trading
-1. Get list of any chosen coins, compare with active pairs
-2. Start the NEF with preconfigured settings
-3. Record the transaction and summary
+1. Run sell bot `python nefman.py -e BINANCE -a startsell`. The output will be available as log file in `sell` folder. 
+2. Run buy bot `python nefman.py -e BINANCE -a buy -m ETHUSDT`. The output will be available as log file in `logs\{exchange}` folder
+3. Stop the bot `python nefman.py -e BINANCE -a stop -m ETHUSDT`. It will delete log file in `logs\binance\ETHUSDT` as well.
+4. Trading summary `python nefman.py -e BINANCE -a summary`
+5. List of active bots `python nefman.py -e BINANCE -a list`
+Tips: -e or exchange can set default in nefman.py file, so you don't have to write it everytime
 
 ## Maintenance
-This is my trading system, set in cron job. If you don't like it, don't run it. Use your own system.
+No maintenance necessary. But if you want to start a system, this is what I have been doing. This is my trading system, set in cron job. If you don't like it, don't run it. Use your own system.
 1. Every x days (default to 3 days), check if there's enough transactions
 2. If not, shutdown the bot. Close all buy limits. Market sell any sell limit
 3. Regularly calculate the pl summary based on transaction data (x days)
 4. Update the balance based on PL summary  (x days)
 
-## Installation
-1. Download Nefertiti and put in your executable path
-1. copy config.cfg.txt to config.cfg
-2. Adjust your settings. You must understand how Nefertiti works in order to adjust your settings. See NEF website.
-3. Setup your virtualenv python3
-4. pip install all items in requirements.txt
-5. Run setup.py. It will create tables, and populate trending coins from Livecoin, and all markets in
 
 ## Requirements
 All requirements is already noted in requirements.txt. Use pip to install them all.
@@ -45,4 +50,3 @@ All requirements is already noted in requirements.txt. Use pip to install them a
 
 Tested on Mac and Linux Ubuntu
 
-Happy cuan bro
