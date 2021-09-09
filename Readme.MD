@@ -20,6 +20,7 @@ As it first published to match my need, this tool equipped with automatically co
 5. Enter your virtual environment `source .envnefman/bin/activate`
 6. Install requirements with pip `pip install -f requirements.txt`
 7. Run setup.py `python setup.py`
+8. Create log folder `mkdir logs sell` for sell logs folder, `mkdir -p logs/{binance,kucoin,hitbtc}` for buy logs per exchange. Please change to your exchanges
 8. Get the pairs for active exchange to be used (eg. get list of active market on Binance)-> `python exchangemarket.py -e BINANCE`   
    This step used to make sure the pair exists in your exchange (even nef also checked that), and for checking if you want to run random pairs for trending coins.
 9. This optional steps, is getting trending coin from livecoinwatch.com, from rank 51-100. I assume in that rank, the coins is trending, but have no momentum yet, with enough volume (avoid shitcoins). Before run this step, make sure you register API for free in livecoinwatch. You may edit the source code to match your rank. Do this to get trending coins -> `python lcmarket.py`
