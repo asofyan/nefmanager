@@ -148,6 +148,7 @@ class nefMan:
                                     print(" ".join(cparam),' > ',logfile,'2>&1')
                                 else:
                                     p = subprocess.Popen(['%s > %s 2>&1'%(" ".join(cparam),logfile)], shell=True)
+                                    time.sleep(5)
                                     traded = TradedPairs()
                                     traded.exchange = ex
                                     traded.pairs = mk.name

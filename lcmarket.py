@@ -27,6 +27,8 @@ headers = {
 }
 
 if __name__ == '__main__':
+    #ex = 'BINANCE'
+    ex = 1
     response = requests.post(url,headers=headers,data=json.dumps(parameters))
     datas = json.loads(response.text)
     db.connect()
@@ -63,6 +65,19 @@ if __name__ == '__main__':
         fiat.execute()
 
     # delete 5 coins that inactive, order by created
-    inactive = Trending.delete().where(Trending.active == False).order_by(Trending.created).limit(5)
-    inactive.execute()
+    try:
+        inactive = Trending.delete().where(Trending.active == False).order_by(Trending.created).limit(5)
+        inactive.execute()
+    except:
+        print("All actives")
+
+    # get random pairs for binance
+    print("get pair for binance")
+    trends = Trending.select(Trending.code).where(Trending.active==True, Trending.counter>0).order_by(fn.Random()).limit(12)
+    for tr in trends:
+        print("--")
+        market = Markets.select().where(Markets.exchange == ex, Markets.name.contains(tr.code))
+        #print(market)
+        for mk in market:
+            print(mk.name)
         
