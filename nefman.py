@@ -391,7 +391,7 @@ if __name__ == '__main__':
     else:
         exchange = 'BINANCE'
     nef = nefMan(exchange)
-    nef.sandbox = True # debugging only
+    nef.sandbox = False # debugging only
     nef.set_instances(config)
     if option.market:
         nef.market = option.market
