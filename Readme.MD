@@ -18,7 +18,7 @@ As it first published to match my need, this tool equipped with automatically co
 3. Please make sure you edit `prices`
 4. Create virtual environment for nefman (*optional*) `virtualenv .envnefman`
 5. Enter your virtual environment `source .envnefman/bin/activate`
-6. Install requirements with pip `pip install -f requirements.txt`
+6. Install requirements with pip `pip install -r requirements.txt`
 7. Run setup.py `python setup.py`
 8. Create log folder `mkdir logs sell` for sell logs folder, `mkdir -p logs/{binance,kucoin,hitbtc}` for buy logs per exchange. Please change to your exchanges
 8. Get the pairs for active exchange to be used (eg. get list of active market on Binance)-> `python exchangemarket.py -e BINANCE`   

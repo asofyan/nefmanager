@@ -43,6 +43,7 @@ def get_market(exchange,quotes):
                     quote = Markets()
                     quote.exchange = exc
                     quote.name = mar['name']
+                    quote.agg = 0.0
                     quote.save()
                 print(mar['name'])
 
