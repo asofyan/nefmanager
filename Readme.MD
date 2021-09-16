@@ -28,7 +28,7 @@ As it first published to match my need, this tool equipped with automatically co
 We are ready to trade with Nef.
 
 ## Trading
-1. Run sell bot `python nefman.py -e BINANCE -a startsell`. The output will be available as log file in `sell` folder. 
+1. Run sell bot `python nefman.py -e BINANCE -a sell`. The output will be available as log file in `sell` folder. 
 2. Run buy bot `python nefman.py -e BINANCE -a buy -m ETHUSDT`. The output will be available as log file in `logs\{exchange}` folder
 3. Stop the bot `python nefman.py -e BINANCE -a stop -m ETHUSDT`. It will delete log file in `logs\binance\ETHUSDT` as well.
 4. Trading summary `python nefman.py -e BINANCE -a summary`
